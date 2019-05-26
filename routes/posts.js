@@ -4,9 +4,20 @@ var multer = require('multer');
 var upload = multer({
   dest:'uploads/'
 });
-var db = require('monk')('localhost/nodeblog');
+var monk = require('monk');
+var db = monk('localhost/nodeblog');
 
 /* GET Posts*/
+router.get('/show/:id', function(req,res){
+  var posts = db.get('posts');
+  posts.findOne({_id: monk.id(req.params.id)},{}, function(err, post){
+    console.log(post);
+    res.render('show',{
+      'post': post
+    });
+  });
+});
+
 router.get('/add', function(req, res, next) {
 
   var categories = db.get('categories');
@@ -25,12 +36,13 @@ router.post('/add', upload.single('mainimage'), function(req,res,next){
   var body = req.body.body;
   var author = req.body.author;
   var date = new Date();
+  var mainimage;
   
   if(req.file){
-    var mainimage = req.file.filename;
+    mainimage = req.file.filename;
   }
   else {
-    var mainimage = "noimage.jpg";
+    mainimage = "noimage.jpg";
   }
 
   req.checkBody('title', 'Title Feild is required').notEmpty();
@@ -60,6 +72,37 @@ router.post('/add', upload.single('mainimage'), function(req,res,next){
         }
     });
   }
+});
+
+router.post('/addcomment', function(req,res){
+  var name = req.body.name;
+  var email = req.body.email;
+  var body = req.body.body;
+  var date = new Date();
+  var postid = req.body.postid;
+
+  var comment = {
+    name:name,
+    email:email,
+    body:body,
+    commentdate:date 
+  };
+
+  var posts = db.get('posts');
+
+  posts.update({
+    "_id":postid
+  },{
+    $push:{
+      "comments":comment
+    }
+  }, function(err, doc){
+    if(err) throw err;
+    else{
+      req.flash('success', 'Comment Added');
+      res.redirect('/posts/show/'+postid);
+    }
+  });
 });
 
 module.exports = router;

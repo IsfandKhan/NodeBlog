@@ -5,11 +5,11 @@ block content
     each post, i in posts
       .post
         h1
-          a(href='/post/show/#{post._id}')
+          a(href='/posts/show/#{post._id}')
             =post.title
         p.meta Posted in 
           a(href='/categories/show/#{post.category}') #{post.category} 
           by #{post.author} on #{moment(post.date).format('DD-MM-YYYY')}
         img(class='image' src="/#{post.mainimage}")
         !=truncateText(post.body, 400)
-        a.more(href='/post/show/#{post._id}') Read More
+        a.more(href='/posts/show/#{post._id}') Read More
